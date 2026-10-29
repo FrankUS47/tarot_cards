@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法塔羅 78 張線上盲抽與深度解讀</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: rgba(26, 26, 46, 0.95);
+            --gold: #d4af37;
+            --gold-light: #f3e5ab;
+            --purple-accent: #6b2d5c;
+            --card-big-w: 190px;
+            --card-big-h: 310px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 30%, #1f1135 0%, #0b0c10 70%);
+            color: #e0e0e0;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            min-height: 100vh;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .subtitle { font-size: 0.9rem; color: #aaa; margin-bottom: 20px; text-align: center; }
+
+        .input-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 10px; }
+        label { color: var(--gold-light); font-weight: bold; }
+
+        input[type="text"] {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(212, 175, 55, 0.4); }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-text { color: var(--gold-light); font-size: 0.95rem; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn {
+            background: linear-gradient(135deg, #8a2be2, #4b0082);
+            color: #fff;
+            border: 1px solid var(--gold);
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+            background: linear-gradient(135deg, #a03cff, #5c0099);
+        }
+        .btn:disabled { background: #444; border-color: #666; color: #888; cursor: not-allowed; box-shadow: none; }
+        .btn-secondary { background: linear-gradient(135deg, #2a2a40, #14142a); }
+
+        .card-deck-section { width: 100%; max-width: 1200px; margin-bottom: 30px; }
+        .section-title { color: var(--gold); font-size: 1.2rem; margin-bottom: 12px; text-align: center; }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 6px;
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+        }
+
+        .deck-card {
+            width: 100%;
+            aspect-ratio: 5/8;
+            background: linear-gradient(135deg, #120c24, #2a1b40);
+            border: 1px solid var(--gold);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .deck-card-num { font-size: 0.45rem; color: var(--gold-light); font-weight: bold; }
+        .deck-card-icon { color: var(--gold); font-size: 0.6rem; opacity: 0.6; }
+
+        .deck-card:hover:not(.disabled) {
+            transform: translateY(-4px);
+            border-color: #fff;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.5);
+        }
+        .deck-card.selected {
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 10px #00ffff;
+            transform: translateY(-6px);
+            background: linear-gradient(135deg, #09344d, #165b75);
+        }
+        .deck-card.selected .deck-card-num { color: #00ffff; }
+        .deck-card.disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .drawn-section { width: 100%; max-width: 950px; margin-top: 10px; display: none; }
+        .drawn-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+
+        .tarot-card-container { width: var(--card-big-w); height: var(--card-big-h); perspective: 1000px; }
+
+        .tarot-card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 10px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+        }
+        .tarot-card-container.flipped .tarot-card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 10px;
+            border: 2px solid var(--gold);
+            overflow: hidden;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #120c24 0%, #2a1b40 50%, #120c24 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--gold);
+        }
+
+        .card-back-pattern {
+            width: 85%;
+            height: 90%;
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(212,175,55,0.05) 10px, rgba(212,175,55,0.05) 20px);
+            font-size: 0.9rem;
+        }
+
+        .card-front {
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0e17 100%);
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 10px;
+            text-align: center;
+        }
+
+        .magic-card-header { font-size: 0.8rem; color: var(--gold); letter-spacing: 1px; }
+        .magic-card-body { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .magic-card-icon { font-size: 2.5rem; display: inline-block; }
+        /* 逆位：只把圖示倒轉，文字保持可讀 */
+        .magic-card-icon.reversed-icon { transform: rotate(180deg); }
+        .magic-card-name { font-size: 1.3rem; color: var(--gold-light); font-weight: bold; }
+        .magic-card-element {
+            font-size: 0.85rem;
+            color: #bbb;
+            background: rgba(212, 175, 55, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .magic-card-footer { font-size: 0.85rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; }
+        .badge-up { background: rgba(46, 125, 50, 0.8); color: #a5d6a7; border: 1px solid #81c784; }
+        .badge-down { background: rgba(198, 40, 40, 0.8); color: #ef9a9a; border: 1px solid #e57373; }
+
+        .position-label { text-align: center; margin-top: 10px; margin-bottom: 8px; font-weight: bold; color: var(--gold-light); font-size: 1.1rem; }
+
+        .report-section {
+            width: 100%;
+            max-width: 950px;
+            background: var(--panel-bg);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        .report-title {
+            color: var(--gold);
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        .question-display {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--gold);
+            word-break: break-word;
+        }
+        .card-detail-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 15px;
+        }
+        .card-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .card-detail-title { color: var(--gold-light); font-size: 1.2rem; font-weight: bold; }
+        .tag {
+            display: inline-block;
+            background: rgba(107, 45, 92, 0.6);
+            border: 1px solid var(--purple-accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        .detail-item { margin-top: 8px; line-height: 1.5; font-size: 0.95rem; }
+        .detail-item strong { color: var(--gold); }
+
+        .summary-box {
+            background: linear-gradient(135deg, rgba(42, 27, 64, 0.8), rgba(20, 15, 35, 0.9));
+            border: 1px solid var(--gold);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        .summary-box h3 { color: var(--gold); margin-bottom: 10px; }
+        .summary-box p { line-height: 1.6; word-break: break-word; }
+
+        /* 手機版：減少每行張數，讓牌可點選 */
+        @media (max-width: 900px) {
+            .deck-grid { grid-template-columns: repeat(8, 1fr); }
+            .deck-card-num { font-size: 0.55rem; }
+            .deck-card-icon { font-size: 0.8rem; }
+        }
+        @media (max-width: 520px) {
+            h1 { font-size: 1.4rem; }
+            .deck-grid { grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 10px; }
+            .deck-card-num { font-size: 0.6rem; }
+            .drawn-grid { gap: 15px; }
+            .btn { padding: 10px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✦ 魔法塔羅 78 張線上盲抽與解讀 ✦</h1>
+    <div class="subtitle">參考魔法塔羅風格，請從下方 78 張覆蓋牌（No.01 ~ No.78）中挑選 3 張牌</div>
+
+    <div class="input-panel">
+        <div class="input-group">
+            <label for="question">請寫下你想諮詢的問題：</label>
+            <input type="text" id="question" placeholder="例如：我近期的整體運勢與建議？" value="我近期的整體運勢與自我調整建議？">
+        </div>
+        <div class="action-bar">
+            <div class="status-text" id="statusText">請點選下方牌陣中的 3 張卡片（已選擇: 0 / 3）</div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="resetBtn" onclick="initDeck()">重新抽牌</button>
+                <button class="btn" id="revealBtn" disabled onclick="revealCards()">揭曉牌面與解答</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 78 張牌陣區 -->
+    <div class="card-deck-section">
+        <div class="section-title">✦ 78 張神秘覆蓋牌陣區（背面附編號）✦</div>
+        <div class="deck-grid" id="deckGrid"></div>
+    </div>
+
+    <!-- 3 張牌陣顯示區 -->
+    <div class="drawn-section" id="drawnSection">
+        <div class="section-title" style="margin-bottom: 20px;">✦ 您的時間流三牌陣 (過去 / 現在 / 未來) ✦</div>
+        <div class="drawn-grid">
+            <div>
+                <div class="position-label">1. 過去 / 起因</div>
+                <div class="tarot-card-container" id="cardContainer0">
+                    <div class="tarot-card-inner">
+                        <div class="card-back"><div class="card-back-pattern">✦ <span id="backCardNum0">Card 1</span> ✦</div></div>
+                        <div class="card-front" id="cardFront0"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="position-label">2. 現在 / 當下處境</div>
+                <div class="tarot-card-container" id="cardContainer1">
+                    <div class="tarot-card-inner">
+                        <div class="card-back"><div class="card-back-pattern">✦ <span id="backCardNum1">Card 2</span> ✦</div></div>
+                        <div class="card-front" id="cardFront1"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="position-label">3. 未來 / 發展建議</div>
+                <div class="tarot-card-container" id="cardContainer2">
+                    <div class="tarot-card-inner">
+                        <div class="card-back"><div class="card-back-pattern">✦ <span id="backCardNum2">Card 3</span> ✦</div></div>
+                        <div class="card-front" id="cardFront2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 解讀報告區 -->
+    <div class="report-section" id="reportSection">
+        <div class="report-title">✦ 魔法塔羅牌義對話報告 ✦</div>
+        <div class="question-display" id="reportQuestion"></div>
+        <div id="cardDetailsContainer"></div>
+        <div class="summary-box">
+            <h3>✦ 牌陣總結與心靈指引</h3>
+            <p id="summaryText"></p>
+        </div>
+    </div>
+
+<script>
+// 完整 78 張牌庫資料庫
+const TAROT_DB = [
+    { id: 0, isMajor: true, name: "愚人", element: "風", icon: "🃏", up_kw: "開端、自由、純真、獨創性、冒險", dn_kw: "魯莽、粗心、分心、幼稚、愚蠢", core: "站在懸崖邊、背著小包袱、身旁跟著小狗的旅人,象徵純粹可能與踏出第一步的勇氣。", up_dec: "你正站在新旅程的起點,帶著好奇與信任向前。", dn_dec: "衝動、缺乏準備或過於天真,容易因疏忽跌跤。", up_love: "新戀情或不設限的相處", dn_love: "小心一頭熱、沒想清楚就投入", up_work: "適合開創新計畫、轉換跑道", dn_work: "先做風險評估與財務規劃", up_tip: "勇敢開始,但先確認最基本的安全網。", dn_tip: "暫緩衝動，先評估現實風險。" },
+    { id: 1, isMajor: true, name: "魔術師", element: "風", icon: "🪄", up_kw: "意志力、慾望、足智多謀、技能、專注", dn_kw: "操縱、狡猾、詭計、浪費天賦、欺騙", core: "一手指天、一手指地,桌上擺著四元素的器物,象徵資源整合。", up_dec: "你手上已有所需工具與技能,現在是集中意志採取行動的時刻。", dn_dec: "能力沒被善用,或有人以話術誤導你。", up_love: "主動表達、展現魅力", dn_love: "留意花言巧語,或自己不夠真誠", up_work: "展現專業、提案創業的好時機", dn_work: "警惕誇大宣傳與合約陷阱", up_tip: "盤點資源,選定一個目標專注執行。", dn_tip: "誠實面對自己的真實動機。" },
+    { id: 2, isMajor: true, name: "女祭司", element: "水", icon: "🌙", up_kw: "無意識、直覺、神秘、靈性、內在聲音", dn_kw: "被壓抑的直覺、隱藏動機、膚淺困惑", core: "坐在黑白兩柱之間,身後有帷幕與石榴,腳邊是月亮。", up_dec: "答案在內心而非外界,安靜沉澱、相信直覺。", dn_dec: "忽略內在聲音、資訊不透明或想太多。", up_love: "感情中有未說出口的心事", dn_love: "留意隱瞞或猜疑", up_work: "先蒐集資訊、等待時機", dn_work: "別被不完整的訊息誤導", up_tip: "給自己獨處與沉澱的時間。", dn_tip: "打開內心，不要過度猜忌。" },
+    { id: 3, isMajor: true, name: "女皇", element: "土", icon: "👑", up_kw: "豐盛、滋養、創造力、美麗、自然", dn_kw: "不安全、專橫、疏忽、缺乏成長", core: "坐在豐饒自然中的女性,身邊有麥田與流水。", up_dec: "事物正在成長結果,適合培育人、計畫或創作。", dn_dec: "過度依賴、控制或溺愛,創造力停滯。", up_love: "溫暖、被呵護的關係", dn_love: "小心過度付出或佔有", up_work: "創意、藝術與照護領域順利", dn_work: "成長緩慢,需要重新找回動力", up_tip: "照顧好自己,讓計畫慢慢成長。", dn_tip: "給對方與自己獨立空間。" },
+    { id: 4, isMajor: true, name: "皇帝", element: "火", icon: "🏛️", up_kw: "穩定性、結構、保護、權威、紀律", dn_kw: "暴君、霸道、死板、固執、魯莽", core: "坐在石座上、手持權杖與圓球的統治者。", up_dec: "需要規劃、紀律與明確界線;穩住基礎。", dn_dec: "控制慾過強、固執專斷或權威失靈。", up_love: "穩重、可靠、負責的伴侶", dn_love: "留意霸道、不願溝通", up_work: "管理、制度、領導位置", dn_work: "小心與上司衝突或僵化制度", up_tip: "建立清楚規則,但保留彈性。", dn_tip: "放下強勢傲慢，展現同理心。" },
+    { id: 5, isMajor: true, name: "教皇", element: "土", icon: "📜", up_kw: "傳統、社會群體、規範、教育、信仰", dn_kw: "叛逆、非常規、不循規蹈矩、教條", core: "在教堂中傳授教義的宗教領袖。", up_dec: "遵循既有規範、向導師學習,走穩健的路。", dn_dec: "打破常規、質疑權威或教條式思考。", up_love: "傳統式、重承諾的關係", dn_love: "不想被框架束縛", up_work: "進修、考證、遵循流程", dn_work: "適合嘗試新方法,需承擔風險", up_tip: "向有經驗的人請益。", dn_tip: "順應內心真正聲音。" },
+    { id: 6, isMajor: true, name: "戀人", element: "風", icon: "💕", up_kw: "愛、結合、夥伴關係、選擇、浪漫", dn_kw: "不和諧、不平衡、衝突、錯誤選擇", core: "男女在天使祝福下相對而立。", up_dec: "真誠的連結與關係和諧;面臨重大抉擇。", dn_dec: "關係失衡、溝通不良或選擇後悔。", up_love: "深度吸引與承諾", dn_love: "出現分歧、價值觀不合", up_work: "合作夥伴契合", dn_work: "留意合作失衡或二選一猶豫", up_tip: "以真實價值觀做選擇。", dn_tip: "重新評估對立的價值觀。" },
+    { id: 7, isMajor: true, name: "戰車", element: "水", icon: "🏇", up_kw: "成功、雄心、決心、意志力、自律", dn_kw: "沒有方向、失去控制、攻擊性強", core: "身穿鎧甲的人駕著戰車,朝目標前進。", up_dec: "決心與自律帶來勝利,果斷前進。", dn_dec: "失去方向或失控,過度好勝而碰壁。", up_love: "主動追求、克服阻礙", dn_love: "爭強好勝、各走各的", up_work: "專案推進、競賽、考試", dn_work: "留意方向不明或內耗", up_tip: "先決定目標,再收攏力氣。", dn_tip: "放慢車速，調整失控情緒。" },
+    { id: 8, isMajor: true, name: "力量", element: "火", icon: "🦁", up_kw: "勇氣、勇敢、自信、同情、內在力量", dn_kw: "自我懷疑、軟弱、怯懦、強硬壓抑", core: "女子溫柔地撫摸獅子的嘴,以耐心勝過蠻力。", up_dec: "用溫柔、同理與堅持面對困難。", dn_dec: "自我懷疑、能量低落,強硬壓抑後爆發。", up_love: "包容與信任讓關係更穩", dn_love: "缺乏安全感或情緒失控", up_work: "以耐心處理棘手人事", dn_work: "需要補充自信與休息", up_tip: "以穩定的溫柔面對挑戰。", dn_tip: "別對自己太苛刻。" },
+    { id: 9, isMajor: true, name: "隱士", element: "土", icon: "🏮", up_kw: "自我反省、內省、沉思、獨處、尋找自我", dn_kw: "孤立、隱居、疏離、逃避", core: "在山頂上提燈的老者,獨自站在雪地。", up_dec: "適合暫時退後、整理思緒、尋找答案。", dn_dec: "過度孤立、封閉或逃避與人接觸。", up_love: "需要空間與自我了解", dn_love: "孤單或疏離", up_work: "專注研究、深度工作", dn_work: "避免孤軍奮戰", up_tip: "給自己安靜的時間。", dn_tip: "試著跨出獨處城堡主動溝通。" },
+    { id: 10, isMajor: true, name: "命運之輪", element: "火", icon: "🎡", up_kw: "變化、週期、命運、轉機、運氣", dn_kw: "運氣不好、缺乏控制、延誤", core: "轉動的輪盤,代表週期、時機與無法完全掌控的變化。", up_dec: "局勢正在轉動,把握時機、順勢而為。", dn_dec: "時運不濟、延誤或抗拒變化。", up_love: "緣分到來或進入新階段", dn_love: "錯過時機、反覆拉扯", up_work: "機會、升遷、行業變動", dn_work: "計畫延後,需要耐心", up_tip: "接受起伏是常態。", dn_tip: "順應低潮，靜待轉機。" },
+    { id: 11, isMajor: true, name: "正義", element: "風", icon: "⚖️", up_kw: "正義、責任、真相、誠實、因果", dn_kw: "不公正、報復、不誠實、逃避責任", core: "手持天秤與劍的端坐女性,象徵公平與因果。", up_dec: "做出理性判斷,事情將依事實得到合理結果。", dn_dec: "不公平、偏見、逃避責任。", up_love: "坦誠、對等的關係", dn_love: "不對等或有隱瞞", up_work: "合約、法務、評審", dn_work: "留意不公與文件疏漏", up_tip: "用事實說話,對選擇負責。", dn_tip: "檢視是否有隱情或偏頗。" },
+    { id: 12, isMajor: true, name: "倒吊人", element: "水", icon: "🙃", up_kw: "犧牲、等待、不確定、換個視角", dn_kw: "拖延、漠不關心、停滯不前", core: "被倒吊在樹上卻神情安詳的人,象徵換個角度看事情。", up_dec: "目前宜等待與放下,換個視角看事情。", dn_dec: "拖延、無謂犧牲,固執不願改變。", up_love: "需要耐心與換位思考", dn_love: "被動消耗", up_work: "專案暫緩、需調整觀點", dn_work: "別再拖延決策", up_tip: "換個角度重新看問題。", dn_tip: "停止無意義的單方面忍讓。" },
+    { id: 13, isMajor: true, name: "死神", element: "水", icon: "🦋", up_kw: "轉變、結局、改變、過渡、放手", dn_kw: "害怕改變、重複消極模式、停滯", core: "騎著白馬的骷髏騎士,象徵結束與重生。", up_dec: "某個階段結束,清掉舊的才能迎接新的。", dn_dec: "害怕改變、抗拒結束,不斷重演舊模式。", up_love: "關係轉型或重新開始", dn_love: "糾纏不放", up_work: "轉職、結束舊職務", dn_work: "守著無效的做法", up_tip: "好好告別,迎接新事物。", dn_tip: "勇敢砍斷腐敗的不良循環。" },
+    { id: 14, isMajor: true, name: "節制", element: "火", icon: "🏺", up_kw: "平衡、和平、耐心、適度、和諧", dn_kw: "不平衡、過度、極端、魯莽", core: "天使將水倒入兩個杯子之間,象徵調和與耐心。", up_dec: "適度、中庸與整合,穩定推進。", dn_dec: "失衡、過度或急躁,缺乏節奏。", up_love: "溫和、互相調適的關係", dn_love: "步調不一或過度投入", up_work: "平衡工作與生活", dn_work: "過勞或失衡", up_tip: "調整比例,慢慢來。", dn_tip: "重新檢視是否過度極端。" },
+    { id: 15, isMajor: true, name: "惡魔", element: "土", icon: "⛓️", up_kw: "壓迫、成癮、痴迷、依賴、局限", dn_kw: "獨立、自由、釋放、收回控制", core: "鎖鏈繫著一男一女的惡魔,象徵自我設限的束縛。", up_dec: "被某種成癮、執念或不健康關係綁住。", dn_dec: "開始掙脫束縛、重拾自主能量。", up_love: "強烈吸引但可能不健康", dn_love: "從控制式關係中醒來", up_work: "被金錢或不公條件綁住", dn_work: "尋求自由", up_tip: "誠實面對自己的依賴。", dn_tip: "恭喜正從毒性執念中解脫。" },
+    { id: 16, isMajor: true, name: "高塔", element: "火", icon: "⚡", up_kw: "災難、破壞、劇變、創傷、突變", dn_kw: "避免災難、延遲不可避免的崩解", core: "閃電擊中高塔、人們墜落,象徵突發崩解與真相揭露。", up_dec: "突發衝擊揭露真相,帶來重建機會。", dn_dec: "避開或延遲衝擊,但問題仍在。", up_love: "關係突然破裂或真相曝光", dn_love: "勉強維持", up_work: "公司劇變、計畫落空", dn_work: "危機暫緩但根本問題仍在", up_tip: "承認什麼已經撐不下去。", dn_tip: "別硬撐虛假的榮景。" },
+    { id: 17, isMajor: true, name: "星星", element: "風", icon: "⭐", up_kw: "希望、靈感、積極、信念、治癒", dn_kw: "絕望、消極、缺乏信心、沮喪", core: "夜空下的裸身女子,將水倒入池中與地上。", up_dec: "經歷風暴後的平靜與希望,恢復信心。", dn_dec: "失去信心、悲觀,覺得沒有出口。", up_love: "療癒、溫柔的陪伴", dn_love: "對感情失望", up_work: "長期目標與靈感", dn_work: "動力低落", up_tip: "給自己恢復的時間。", dn_tip: "重新燃起對生活的信念。" },
+    { id: 18, isMajor: true, name: "月亮", element: "水", icon: "🌔", up_kw: "錯覺、直覺、不確定性、困惑、秘密", dn_kw: "恐懼散去、真相大白、焦慮", core: "月下有犬狼與水中爬出的螯蝦,象徵潛意識與不安。", up_dec: "情勢不明、直覺與恐懼交雜,別急著下結論。", dn_dec: "迷霧逐漸散去、真相浮現。", up_love: "不確定、猜疑或祕密", dn_love: "看清真相", up_work: "資訊不透明,簽約宜謹慎", dn_work: "誤會澄清", up_tip: "放慢決定,多查證。", dn_tip: "驅散內心的幻象與莫名的恐懼。" },
+    { id: 19, isMajor: true, name: "太陽", element: "火", icon: "☀️", up_kw: "幸福、成功、樂觀、活力、喜悅", dn_kw: "幸福受阻、過度熱情、自負", core: "孩子騎著白馬、背後向日葵盛開,象徵喜悅與活力。", up_dec: "光明、成功與滿足:一切清晰有精神。", dn_dec: "喜悅被延遲、過度樂觀或自負。", up_love: "開心、坦率的關係", dn_love: "期待過高", up_work: "成果被肯定", dn_work: "小心驕傲", up_tip: "享受成果,保持坦誠。", dn_tip: "防範自高自大帶來的失誤。" },
+    { id: 20, isMajor: true, name: "審判", element: "火", icon: "📯", up_kw: "自我評價、覺醒、更新、目的、清算", dn_kw: "自我懷疑、逃避過往、未吸取教訓", core: "天使吹號、眾人從棺中起身回應,象徵覺醒與重新出發。", up_dec: "回顧過去做出總結,聽見召喚重新出發。", dn_dec: "自我懷疑、不願面對過往。", up_love: "舊關係檢視或復合", dn_love: "困在後悔中", up_work: "職涯重新定位、重大決定", dn_work: "猶豫不決", up_tip: "誠實回顧,原諒自己。", dn_tip: "別再自責，從經驗中汲取力量。" },
+    { id: 21, isMajor: true, name: "世界", element: "土", icon: "🌍", up_kw: "完成、成就感、歸屬感、和諧", dn_kw: "缺乏完結感、感覺不完整、空虛", core: "舞者在花環中央,四角圍繞四元素,代表圓滿。", up_dec: "一個週期完成達成目標,感到完整。", dn_dec: "差臨門一腳、未竟之事,收尾困難。", up_love: "圓滿穩定的關係", dn_love: "缺少結論", up_work: "專案完成、拓展舞台", dn_work: "收尾困難", up_tip: "完成最後一步。", dn_tip: "補齊欠缺，為計畫劃下句點。" },
+
+    // 小阿爾克納 - 權杖 (22-35)
+    { id: 22, isMajor: false, name: "權杖首牌", element: "火", icon: "🔥", up_kw: "靈感、新激情、熱情、活力", dn_kw: "延遲、缺乏激情、猶豫", core: "雲中手握發芽的權杖。", up_dec: "新計畫、靈感冒出來,趁熱情時開始。", dn_dec: "靈感受阻、熱情不足、猶豫不前。", up_love: "新的吸引", dn_love: "熱度不足", up_work: "新專案啟動", dn_work: "延宕", up_tip: "抓住火花,做出第一步。", dn_tip: "克服拖延找回動力。" },
+    { id: 23, isMajor: false, name: "權杖二", element: "火", icon: "🔥", up_kw: "計劃、做出決定、走出舒適圈", dn_kw: "糟糕計畫、過度分析、不行動", core: "站在城堡上、手握地球儀與權杖。", up_dec: "已有成果但想要更多,正在規劃決策。", dn_dec: "過度分析、不敢行動或計畫不周。", up_love: "考慮關係方向", dn_love: "猶豫不決", up_work: "評估擴展版圖", dn_work: "遲遲不採取行動", up_tip: "做好計畫後踏出第一步。", dn_tip: "勇敢走出舒適圈。" },
+    { id: 24, isMajor: false, name: "權杖三", element: "火", icon: "🔥", up_kw: "動力、信心、擴張、遠見", dn_kw: "限制、缺乏進展、延誤", core: "人站在高處望著遠方船隻。", up_dec: "事情已見效,視野打開,等待成果。", dn_dec: "進展受阻、延誤或期待落空。", up_love: "異地、長期展望", dn_love: "溝通延誤", up_work: "海外、貿易、擴張", dn_work: "進度延遲", up_tip: "保持遠見,耐心等船靠岸。", dn_tip: "耐心克服眼前阻礙。" },
+    { id: 25, isMajor: false, name: "權杖四", element: "火", icon: "🔥", up_kw: "社區、慶典、穩定、歸屬感", dn_kw: "缺乏支持、不穩定、家庭摩擦", core: "四根權杖撐起花環與門。", up_dec: "慶祝、團聚,安穩有歸屬感。", dn_dec: "不穩定、缺乏歸屬或家庭摩擦。", up_love: "訂婚、同居、聚會", dn_love: "不安定", up_work: "團隊慶功", dn_work: "缺乏支持", up_tip: "停下來慶祝並感謝夥伴。", dn_tip: "努力修復內部關係。" },
+    { id: 26, isMajor: false, name: "權杖五", element: "火", icon: "🔥", up_kw: "衝突、競爭、爭論、緊張", dn_kw: "衝突結束、和諧、避免衝突", core: "五個人各持權杖互相爭鬥。", up_dec: "摩擦、競爭,但也能激發成長。", dn_dec: "衝突趨緩、尋求共識或逃避衝突。", up_love: "爭吵與磨合", dn_love: "休戰", up_work: "職場競爭、腦力激盪", dn_work: "共識達成", up_tip: "把爭論轉成合作。", dn_tip: "化干戈為玉帛。" },
+    { id: 27, isMajor: false, name: "權杖六", element: "火", icon: "🔥", up_kw: "成功、勝利、認可、讚美", dn_kw: "失敗、缺乏認可、過度自負", core: "戴著桂冠騎馬凱旋的勝利者。", up_dec: "勝利、被肯定,自信提升。", dn_dec: "成果不被認可、失敗或過度自負。", up_love: "被認可的關係", dn_love: "自尊受挫", up_work: "升遷、獲獎", dn_work: "缺乏肯定", up_tip: "享受肯定勿驕傲。", dn_tip: "保持謙虛。" },
+    { id: 28, isMajor: false, name: "權杖七", element: "火", icon: "🔥", up_kw: "保護立場、堅持原則、勇敢面對", dn_kw: "放棄、讓步、缺乏自信", core: "站在高處抵擋下方權杖的人。", up_dec: "守住自己的位置與原則。", dn_dec: "退縮、讓步或疲於防守。", up_love: "為關係或立場辯護", dn_love: "放棄", up_work: "保住業績", dn_work: "認輸", up_tip: "堅定立場評估價值。", dn_tip: "精疲力竭時考量止損。" },
+    { id: 29, isMajor: false, name: "權杖八", element: "火", icon: "🔥", up_kw: "速度、進步、快速決定、變化", dn_kw: "等待、混亂、延誤、倉促失誤", core: "八根權杖在空中快速飛行。", up_dec: "事情加速,消息或行動迅速到位。", dn_dec: "延遲、混亂或因倉促而失誤。", up_love: "快速發展", dn_love: "熱度降低", up_work: "快速推進、出差", dn_work: "耽擱", up_tip: "把握速度確認細節。", dn_tip: "欲速則不達。" },
+    { id: 30, isMajor: false, name: "權杖九", element: "火", icon: "🔥", up_kw: "堅持、毅力、接近成功、疲勞", dn_kw: "頑固、防禦、拒絕妥協", core: "受傷的人倚著權杖堅持。", up_dec: "已接近終點,雖疲憊仍要堅持。", dn_dec: "固執、過度防衛或想放棄。", up_love: "對關係的戒心", dn_love: "築起心牆", up_work: "臨門一腳的耐力", dn_work: "精力耗盡", up_tip: "補充體力撐過最後一段。", dn_tip: "放下過度防衛。" },
+    { id: 31, isMajor: false, name: "權杖十", element: "火", icon: "🔥", up_kw: "負擔、責任、壓力、精疲力竭", dn_kw: "無法分擔而崩潰、放下重擔", core: "背負十根權杖低頭前行的人。", up_dec: "責任過重、壓力大,已接近終點。", dn_dec: "無法分擔而崩潰或終於放下。", up_love: "一人扛太多", dn_love: "撐不住", up_work: "過勞壓力大", dn_work: "需要授權分工", up_tip: "學會分擔放下重擔。", dn_tip: "及時授權分工。" },
+    { id: 32, isMajor: false, name: "權杖侍從", element: "火", icon: "🔥", up_kw: "冒險、新鮮想法、活力、消息", dn_kw: "三分鐘熱度、缺乏耐心、不可靠", core: "年輕人手持權杖凝視遠方。", up_dec: "熱情的新構想、好消息。", dn_dec: "三分鐘熱度、缺乏耐心。", up_love: "新鮮感", dn_love: "不穩定", up_work: "初試身手", dn_work: "半途而廢", up_tip: "放手嘗試堅持到底。", dn_tip: "培養耐力。" },
+    { id: 33, isMajor: false, name: "權杖騎士", element: "火", icon: "🔥", up_kw: "勇敢、精力充沛、衝勁、行動", dn_kw: "魯莽、易怒、缺乏自制", core: "騎馬衝刺的騎士。", up_dec: "勇敢、充滿魅力、行動快速。", dn_dec: "魯莽、易怒、缺乏自制。", up_love: "熱烈追求", dn_love: "忽冷忽熱", up_work: "衝刺階段", dn_work: "過於衝動", up_tip: "讓熱情有方向。", dn_tip: "控制暴躁脾氣。" },
+    { id: 34, isMajor: false, name: "權杖皇后", element: "火", icon: "🔥", up_kw: "自信、熱情、善社交、有魅力", dn_kw: "嫉妒、控制慾、情緒化", core: "坐在向日葵與黑貓旁的女王。", up_dec: "自信、熱情、善社交。", dn_dec: "嫉妒、控制慾、情緒化。", up_love: "有魅力主動", dn_love: "嫉妒心重", up_work: "領導、社交場合", dn_work: "過於苛求", up_tip: "自信發光留意情緒。", dn_tip: "調整安全感。" },
+    { id: 35, isMajor: false, name: "權杖國王", element: "火", icon: "🔥", up_kw: "領導力、遠見、大局、果敢", dn_kw: "專橫、暴躁、獨裁專斷", core: "坐在寶座上的領袖。", up_dec: "有遠見、果敢帶領大局。", dn_dec: "專橫、暴躁或領導失效。", up_love: "強勢有魅力伴侶", dn_love: "專斷獨行", up_work: "管理者、創業", dn_work: "獨裁專斷", up_tip: "以願景帶領人。", dn_tip: "防範傲慢獨斷。" },
+
+    // 小阿爾克納 - 聖杯 (36-49)
+    { id: 36, isMajor: false, name: "聖杯首牌", element: "水", icon: "💧", up_kw: "愛、情感覺醒、創造力、直覺", dn_kw: "冷漠、空虛、感覺不被愛", core: "雲中手捧滿溢的聖杯。", up_dec: "新感情、靈感、情感覺醒。", dn_dec: "情緒冷淡、感覺不被愛。", up_love: "新戀情或感情深化", dn_love: "感到空虛", up_work: "創意工作新起點", dn_work: "缺乏熱忱", up_tip: "打開心接受新感受。", dn_tip: "學會自愛。" },
+    { id: 37, isMajor: false, name: "聖杯二", element: "水", icon: "💧", up_kw: "團結、夥伴關係、吸引力、和諧", dn_kw: "失衡、溝通不良、分離", core: "兩人舉杯互敬。", up_dec: "相互吸引、平等合作。", dn_dec: "失衡、溝通不良、分離。", up_love: "互相吸引告白", dn_love: "出現分歧", up_work: "合作夥伴", dn_work: "合作破局", up_tip: "建立平衡連結。", dn_tip: "修復溝通裂痕。" },
+    { id: 38, isMajor: false, name: "聖杯三", element: "水", icon: "💧", up_kw: "友誼、聚會、慶祝、團體活動", dn_kw: "八卦、過度放縱、小圈圈", core: "三位女子舉杯慶祝。", up_dec: "聚會、友誼、團體喜事。", dn_dec: "過度放縱、八卦、疏離。", up_love: "朋友圈社交", dn_love: "三角關係或流言", up_work: "團隊慶祝", dn_work: "小圈圈排外", up_tip: "享受群體快樂但適度。", dn_tip: "遠離是非八卦。" },
+    { id: 39, isMajor: false, name: "聖杯四", element: "水", icon: "💧", up_kw: "冷漠、倦怠、忽視新機會", dn_kw: "回神、重新有動力、接受", core: "人坐在樹下冷漠看著三個杯子。", up_dec: "冷漠、無聊,可能錯過新機會。", dn_dec: "回神、重新有動力、接受新事物。", up_love: "對關係倦怠", dn_love: "重新投入", up_work: "工作倦怠", dn_work: "找回熱情", up_tip: "抬頭看看被忽略的選擇。", dn_tip: "嘗試接受新機會。" },
+    { id: 40, isMajor: false, name: "聖杯五", element: "水", icon: "💧", up_kw: "失落、悲傷、失望、遺憾", dn_kw: "走出悲傷、接受並前進", core: "披黑斗篷的人看著打翻的三個杯子。", up_dec: "悲傷遺憾,專注失去的而忽略還有的。", dn_dec: "逐漸走出悲傷,接受並前進。", up_love: "分手失落", dn_love: "逐漸療癒", up_work: "挫折", dn_work: "重新振作", up_tip: "允許悲傷看看剩下資源。", dn_tip: "看看背後擁有的資源。" },
+    { id: 41, isMajor: false, name: "聖杯六", element: "水", icon: "💧", up_kw: "懷舊、舊識、美好回憶、付出", dn_kw: "沉溺過去、無法前進", core: "孩子把裝著花的杯子遞給另一孩子。", up_dec: "懷舊、美好回憶與單純付出。", dn_dec: "沉溺過去無法前進。", up_love: "舊情青梅竹馬", dn_love: "困在過去傷痛", up_work: "回到舊領域", dn_work: "需要向前看", up_tip: "珍惜回憶別被拖住。", dn_tip: "勇敢告別過去。" },
+    { id: 42, isMajor: false, name: "聖杯七", element: "水", icon: "💧", up_kw: "選擇多、白日夢、幻想", dn_kw: "看清現實、做出選擇、聚焦", core: "人望著雲中漂浮的七個杯子。", up_dec: "選項很多、白日夢、猶豫不決。", dn_dec: "看清現實、做出選擇。", up_love: "不切實際的想像", dn_love: "清醒面對現實", up_work: "計畫多缺乏行動", dn_work: "聚焦明確目標", up_tip: "檢視可行性選一個。", dn_tip: "把天馬行空落實。" },
+    { id: 43, isMajor: false, name: "聖杯八", element: "水", icon: "💧", up_kw: "主動離開、尋找真實意義", dn_kw: "勉強留下、害怕改變、逃避", core: "人離開疊好的杯子走向山中。", up_dec: "主動離開不滿足處境,尋找真實。", dn_dec: "勉強留下、害怕改變或逃避。", up_love: "離開不再滋養的關係", dn_love: "委曲求全", up_work: "離職或轉換方向", dn_work: "不敢離職而停滯", up_tip: "勇敢走向更有意義的路。", dn_tip: "別因害怕未知死守壞環境。" },
+    { id: 44, isMajor: false, name: "聖杯九", element: "水", icon: "💧", up_kw: "願望成真、心願達成、滿足", dn_kw: "表面滿足內在空虛、自滿", core: "男人坐著身後排著九個杯子。", up_dec: "心願達成、滿足、享受成果。", dn_dec: "表面滿足卻內在空虛。", up_love: "滿足的關係", dn_love: "內心依然空虛", up_work: "目標達成", dn_work: "成果不如預期", up_tip: "感謝並享受。", dn_tip: "追求心理實質滿足。" },
+    { id: 45, isMajor: false, name: "聖杯十", element: "水", icon: "💧", up_kw: "家庭和諧、情感圓滿、安全感", dn_kw: "家庭紛爭、分離、理想落差", core: "一家人在彩虹下相擁。", up_dec: "家庭和諧、情感圓滿、安心。", dn_dec: "家庭紛爭、分離。", up_love: "穩定家庭與伴侶", dn_love: "關係不和", up_work: "與團隊和睦", dn_work: "價值觀衝突", up_tip: "珍惜身邊的人。", dn_tip: "修復家庭與團隊和睦。" },
+    { id: 46, isMajor: false, name: "聖杯侍從", element: "水", icon: "💧", up_kw: "敏感、有創意、感性訊息", dn_kw: "情緒脆弱、幼稚、逃避現實", core: "年輕人捧著杯子,魚探出頭。", up_dec: "敏感、有創意,收到感情訊息。", dn_dec: "情緒脆弱、幼稚逃避現實。", up_love: "浪漫示好", dn_love: "不成熟的情緒控管", up_work: "創意工作", dn_work: "缺乏現實考慮", up_tip: "傾聽感受腳踏實地。", dn_tip: "控制情緒化反應。" },
+    { id: 47, isMajor: false, name: "聖杯騎士", element: "水", icon: "💧", up_kw: "浪漫、理想主義、風度提案", dn_kw: "情緒起伏、不切實際、逃避", core: "騎白馬捧著聖杯的騎士。", up_dec: "浪漫有風度,帶來邀請或提案。", dn_dec: "情緒起伏、不切實際。", up_love: "浪漫追求", dn_love: "善變忽冷忽熱", up_work: "外交協調", dn_work: "只說不做", up_tip: "以誠意行動。", dn_tip: "切莫流於花言巧語。" },
+    { id: 48, isMajor: false, name: "聖杯皇后", element: "水", icon: "💧", up_kw: "溫暖、同理心、照顧、直覺", dn_kw: "過度敏感、依賴、情緒勒索", core: "坐在海邊寶座上凝視聖杯的女王。", up_dec: "溫暖同理,善於照顧有直覺。", dn_dec: "過度敏感、依賴、被情緒淹沒。", up_love: "體貼照顧", dn_love: "情緒勒索缺乏安全感", up_work: "輔導照護", dn_work: "界線不清過度承擔", up_tip: "先照顧好自己情緒界線。", dn_tip: "守住情感界限。" },
+    { id: 49, isMajor: false, name: "聖杯國王", element: "水", icon: "💧", up_kw: "情緒穩定、明智、兼顧理智感情", dn_kw: "壓抑情緒、冷漠、操控", core: "坐在海中寶座上的國王。", up_dec: "情緒穩定明智,兼顧理智與感情。", dn_dec: "壓抑情緒、冷漠、操控。", up_love: "成熟可靠", dn_love: "冷漠無視", up_work: "輔導諮商式領導", dn_work: "情緒化決策", up_tip: "理性與感性並行。", dn_tip: "誠實表達情感。" },
+
+    // 小阿爾克納 - 寶劍 (50-63)
+    { id: 50, isMajor: false, name: "寶劍首牌", element: "風", icon: "⚔️", up_kw: "清晰、突破、新想法、真理", dn_kw: "混亂、溝通不良、判斷失誤", core: "雲中手握戴王冠的劍。", up_dec: "想法清晰、看見真相、獲得突破。", dn_dec: "混亂、溝通不良、判斷失誤。", up_love: "坦誠溝通", dn_love: "口角爭吵", up_work: "新點子與決策", dn_work: "判斷錯誤", up_tip: "用理性看清事實說真話。", dn_tip: "釐清邏輯避免傷人。" },
+    { id: 51, isMajor: false, name: "寶劍二", element: "風", icon: "⚔️", up_kw: "僵局、難抉擇、逃避真相", dn_kw: "優柔寡斷、焦慮、真相曝光", core: "蒙眼女子雙手持劍交叉。", up_dec: "難以抉擇、僵持、不願面對真相。", dn_dec: "優柔寡斷、焦慮、真相曝光。", up_love: "對關係猶豫不決", dn_love: "被迫面對選擇", up_work: "兩難局面", dn_work: "被推著做決定", up_tip: "摘下眼罩蒐集資訊。", dn_tip: "勇敢拿下眼罩。" },
+    { id: 52, isMajor: false, name: "寶劍三", element: "風", icon: "⚔️", up_kw: "心碎、痛苦真相、分離悲傷", dn_kw: "療癒、寬恕、壓抑悲傷", core: "心被三把劍刺穿下著雨。", up_dec: "痛苦真相、分離、心碎。", dn_dec: "療癒、寬恕或壓抑悲傷。", up_love: "失戀背叛", dn_love: "傷口逐漸癒合", up_work: "衝擊性消息", dn_work: "逐漸復原", up_tip: "允許悲傷發生慢慢修復。", dn_tip: "釋放悲傷重新開始。" },
+    { id: 53, isMajor: false, name: "寶劍四", element: "風", icon: "⚔️", up_kw: "休息、療養、沉澱、恢復", dn_kw: "恢復活力、逃避休息焦躁", core: "躺在石棺上的騎士。", up_dec: "需要休息、療養、沉澱。", dn_dec: "恢復活力重新行動或逃避休息。", up_love: "暫停冷靜", dn_love: "重新聯繫", up_work: "休假復原", dn_work: "過度勞累", up_tip: "先休息再出發。", dn_tip: "充好電重新邁進。" },
+    { id: 54, isMajor: false, name: "寶劍五", element: "風", icon: "⚔️", up_kw: "爭執、欺壓、得不償失的勝利", dn_kw: "和解、妥協、後悔止損", core: "勝利者拾劍敗者離去。", up_dec: "爭執、欺壓、得不償失的勝利。", dn_dec: "和解、妥協、後悔止損。", up_love: "爭吵各不退讓", dn_love: "雙方和解", up_work: "職場鬥爭", dn_work: "認錯止損", up_tip: "想想勝利值不值得。", dn_tip: "妥協認錯終止內耗。" },
+    { id: 55, isMajor: false, name: "寶劍六", element: "風", icon: "⚔️", up_kw: "離開困境、過渡期、帶教訓前行", dn_kw: "困在原地、逃避問題、重蹈覆轍", core: "船夫載人與劍渡水。", up_dec: "離開困境過渡期,帶著教訓前行。", dn_dec: "困在原地、逃避問題。", up_love: "慢慢離開傷痛", dn_love: "執迷不悟放不下", up_work: "轉換環境", dn_work: "進展停滯", up_tip: "帶著經驗前行不回頭。", dn_tip: "坦然面對問題。" },
+    { id: 56, isMajor: false, name: "寶劍七", element: "風", icon: "⚔️", up_kw: "偷偷摸摸、取巧、策略隱瞞", dn_kw: "良心不安、真相揭露、停止欺瞞", core: "人偷偷拿走幾把劍。", up_dec: "偷偷摸摸、取巧或需要謹慎。", dn_dec: "良心不安、真相揭露。", up_love: "隱瞞不忠", dn_love: "坦白交代真相", up_work: "取巧走捷徑", dn_work: "欺瞞行為被揭穿", up_tip: "檢視誠實度別走捷徑。", dn_tip: "誠實是最好的策略。" },
+    { id: 57, isMajor: false, name: "寶劍八", element: "風", icon: "⚔️", up_kw: "感覺受困、無助、想法設限", dn_kw: "重獲自由、掙脫恐懼", core: "蒙眼被綁女子被劍包圍。", up_dec: "感覺受困無助,多半是想法設限。", dn_dec: "重獲自由、掙脫恐懼。", up_love: "在關係中受困", dn_love: "打破枷鎖解脫", up_work: "感覺沒有出路", dn_work: "找到突破出口", up_tip: "質疑被困住了的想法。", dn_tip: "鬆開心中的枷鎖。" },
+    { id: 58, isMajor: false, name: "寶劍九", element: "風", icon: "⚔️", up_kw: "憂慮、失眠、自責、焦慮恐懼", dn_kw: "逐漸康復、尋求幫助、焦慮加深", core: "坐在床上掩面的人。", up_dec: "憂慮、失眠、自責與恐懼。", dn_dec: "逐漸康復、尋求幫助。", up_love: "過度擔心不安", dn_love: "尋求外援與同理", up_work: "壓力過大失眠", dn_work: "面對問題本質", up_tip: "與信任的人談談。", dn_tip: "走出現實惡夢。" },
+    { id: 59, isMajor: false, name: "寶劍十", element: "風", icon: "⚔️", up_kw: "最壞已過、痛苦終點、背叛", dn_kw: "從谷底爬起、開始恢復", core: "背後插著十把劍的人。", up_dec: "最壞的已經過去,痛苦走到終點。", dn_dec: "開始恢復、從谷底爬起。", up_love: "關係徹底結束", dn_love: "走出陰影重生", up_work: "計畫失敗谷底", dn_work: "東山再起", up_tip: "接受結束明白最糟已過。", dn_tip: "谷底就是反彈開始。" },
+    { id: 60, isMajor: false, name: "寶劍侍從", element: "風", icon: "⚔️", up_kw: "好奇、思維敏捷、愛學習溝通", dn_kw: "尖酸、八卦、缺乏計畫", core: "手持劍迎風站立的年輕人。", up_dec: "好奇、思維敏捷、愛學習溝通。", dn_dec: "尖酸、八卦、缺乏計畫。", up_love: "話多愛探聽", dn_love: "言語尖酸傷人", up_work: "學習資訊類工作", dn_work: "造謠與無謂八卦", up_tip: "保持好奇但慎言。", dn_tip: "講話管住嘴巴。" },
+    { id: 61, isMajor: false, name: "寶劍騎士", element: "風", icon: "⚔️", up_kw: "自信、直接、反應快、決心強", dn_kw: "魯莽、尖刻、好鬥", core: "在風中衝鋒的騎士。", up_dec: "自信、直接、反應快、決心強。", dn_dec: "魯莽、尖刻、好鬥。", up_love: "直白追求", dn_love: "冷酷無情傷人", up_work: "快速決策", dn_work: "橫衝直撞得罪人", up_tip: "講求效率留意措辭。", dn_tip: "收斂尖銳鋒芒。" },
+    { id: 62, isMajor: false, name: "寶劍皇后", element: "風", icon: "⚔️", up_kw: "誠實、獨立、公平、有洞察力", dn_kw: "刻薄、冷酷、操縱挑剔", core: "獨坐寶座手持劍的女王。", up_dec: "誠實、獨立、公平、有洞察力。", dn_dec: "刻薄、冷酷、操縱。", up_love: "有清楚界線", dn_love: "過度挑剔苛刻", up_work: "專業客觀", dn_work: "刻薄挑剔", up_tip: "保持客觀帶點溫度。", dn_tip: "別忘了帶給人溫暖。" },
+    { id: 63, isMajor: false, name: "寶劍國王", element: "風", icon: "⚔️", up_kw: "理性、權威、紀律、有原則", dn_kw: "專制、冷酷、不理性", core: "手持劍的權威人物。", up_dec: "理性、權威、紀律、有原則。", dn_dec: "專制、冷酷、不理性。", up_love: "講理可靠", dn_love: "冷酷控制", up_work: "法律顧問", dn_work: "獨斷專行", up_tip: "公正原則帶同理心。", dn_tip: "少點冰冷規則。" },
+
+    // 小阿爾克納 - 星幣 (64-77)
+    { id: 64, isMajor: false, name: "星幣首牌", element: "土", icon: "🪙", up_kw: "新機會、資源到來、財務起點", dn_kw: "錯失機會、投資不當、吝嗇", core: "雲中手捧金幣下方花園。", up_dec: "新機會、資源到來、財務新起點。", dn_dec: "錯失機會、投資不當。", up_love: "務實的新開始", dn_love: "缺乏穩定基礎", up_work: "新工作財務機會", dn_work: "投資失誤", up_tip: "把握機會務實落實。", dn_tip: "切莫因小失大。" },
+    { id: 65, isMajor: false, name: "星幣二", element: "土", icon: "🪙", up_kw: "平衡資源、多工作業、靈活調度", dn_kw: "失衡、應付不來、混亂超載", core: "人雜耍著兩枚星幣。", up_dec: "同時處理多件事,靈活調度。", dn_dec: "失衡、應付不來。", up_love: "兼顧關係與生活", dn_love: "疲憊不堪", up_work: "多工作業靈活調度", dn_work: "財務超載失控", up_tip: "排出優先順序。", dn_tip: "先穩住重點。" },
+    { id: 66, isMajor: false, name: "星幣三", element: "土", icon: "🪙", up_kw: "團隊協作、專業肯定、共同目標", dn_kw: "缺乏合作、各自為政、內耗", core: "工匠在教堂中工作。", up_dec: "團隊協作、專業受到肯定。", dn_dec: "缺乏合作、各自為政。", up_love: "共同經營未來", dn_love: "溝通不良無共識", up_work: "團隊專案順利", dn_work: "團隊內耗衝突", up_tip: "與有專長的人合作。", dn_tip: "促進團隊溝通。" },
+    { id: 67, isMajor: false, name: "星幣四", element: "土", icon: "🪙", up_kw: "重視安全、儲蓄、守成", dn_kw: "慷慨放開、過度花費、財務不安", core: "人緊抱著星幣不放。", up_dec: "重視安全、儲蓄與穩定。", dn_dec: "慷慨放開或過度花費。", up_love: "保護慾強", dn_love: "佔有慾過強或散財", up_work: "保守守成", dn_work: "揮霍無度亂花錢", up_tip: "別因安全感封閉自己。", dn_tip: "錢財需合理流動。" },
+    { id: 68, isMajor: false, name: "星幣五", element: "土", icon: "🪙", up_kw: "財務健康困難、孤立無助", dn_kw: "逐漸好轉、得到幫助", core: "兩個窮人在雪中走過教堂。", up_dec: "財務健康困難,援助就在附近。", dn_dec: "逐漸好轉、得到幫助。", up_love: "感到孤單被忽略", dn_love: "被接納療癒", up_work: "失業或陷入虧損", dn_work: "財務漸漸恢復", up_tip: "開口求助援助在附近。", dn_tip: "勇敢尋求支援。" },
+    { id: 69, isMajor: false, name: "星幣六", element: "土", icon: "🪙", up_kw: "慷慨、互助、被幫助、分享", dn_kw: "不對等施捨、附帶條件控制", core: "富人把錢施捨給乞者。", up_dec: "慷慨、互助、被幫助。", dn_dec: "不對等的施捨、附帶條件。", up_love: "付出與回應平衡", dn_love: "一方高高在上控制", up_work: "獲資助與獎勵", dn_work: "資源分配不公", up_tip: "給予接受保持平衡。", dn_tip: "防範背後的控制。" },
+    { id: 70, isMajor: false, name: "星幣七", element: "土", icon: "🪙", up_kw: "收穫在望、耐心等待檢視成果", dn_kw: "努力不見成果、急躁做白工", core: "農人看著成長中的作物。", up_dec: "收穫在望,需要耐心等待。", dn_dec: "努力不見成果、急躁。", up_love: "慢熱培育關係", dn_love: "失去耐心想放棄", up_work: "長期投資佈局", dn_work: "效率低做白工", up_tip: "持續照料耐心等待。", dn_tip: "停下無效投資。" },
+    { id: 71, isMajor: false, name: "星幣八", element: "土", icon: "🪙", up_kw: "精進技術、專心投入、高標準", dn_kw: "敷衍、倦怠、缺乏動力", core: "工匠專心雕刻星幣。", up_dec: "精進技術、專心投入。", dn_dec: "敷衍、倦怠、缺乏動力。", up_love: "用心經營相處", dn_love: "敷衍忽視伴侶", up_work: "專業養成精益求精", dn_work: "品質粗製濫造", up_tip: "專注把基本功練好。", dn_tip: "重新鍛鍊基本功。" },
+    { id: 72, isMajor: false, name: "星幣九", element: "土", icon: "🪙", up_kw: "努力有回報、物質自足、享受", dn_kw: "過度依賴物質、表面光鮮", core: "華服女子站在花園中。", up_dec: "努力有回報、物質自足享受生活。", dn_dec: "過度依賴物質、不穩定。", up_love: "享受自給自足", dn_love: "過度重視物質", up_work: "財務獨立豐收", dn_work: "財政虛胖不穩", up_tip: "享受成果維持穩定。", dn_tip: "不要過度消費。" },
+    { id: 73, isMajor: false, name: "星幣十", element: "土", icon: "🪙", up_kw: "財富、家族傳承、穩固基礎", dn_kw: "家庭糾紛、金錢衝突、不穩", core: "家族三代庭園與拱門。", up_dec: "財富、家族、傳承、穩固基礎。", dn_dec: "家庭糾紛、金錢衝突。", up_love: "家庭長遠承諾", dn_love: "家族與利益衝突", up_work: "長期穩定事業", dn_work: "財務糾紛僵局", up_tip: "為長遠做規劃維護家人。", dn_tip: "化解利益紛爭。" },
+    { id: 74, isMajor: false, name: "星幣侍從", element: "土", icon: "🪙", up_kw: "勤奮、有目標、腳踏實地學習", dn_kw: "不成熟、懶惰、錯失機會", core: "年輕人凝視手中的星幣。", up_dec: "勤奮、有目標、腳踏實地。", dn_dec: "不成熟、懶惰、錯失機會。", up_love: "穩定務實的開始", dn_love: "不上心敷衍", up_work: "務實學習階段", dn_work: "拖延懶散錯失良機", up_tip: "設定目標一步步來。", dn_tip: "停止空想起而行。" },
+    { id: 75, isMajor: false, name: "星幣騎士", element: "土", icon: "🪙", up_kw: "可靠、勤奮、緩慢而穩定", dn_kw: "沉悶、懶散、冒險賭博", core: "騎著黑色駿馬緩慢前進的騎士。", up_dec: "可靠、勤奮、緩慢而穩定。", dn_dec: "沉悶、懶散、冒險賭博。", up_love: "忠誠踏實", dn_love: "無趣沉悶或不負責", up_work: "穩定推進無誤", dn_work: "極度拖延或盲目投機", up_tip: "穩紮穩打。", dn_tip: "切忌盲目投機。" },
+    { id: 76, isMajor: false, name: "星幣皇后", element: "土", icon: "🪙", up_kw: "慷慨務實、善於經營居家資源", dn_kw: "自私、物質至上、缺乏安全感", core: "坐在豐盛花園中的女王。", up_dec: "慷慨務實,善於經營資源。", dn_dec: "自私、物質至上、缺乏安全感。", up_love: "溫暖照顧家庭", dn_love: "物質控制慾重", up_work: "理財與資源經營", dn_work: "過度貪婪守財", up_tip: "照顧家財心也要豐盛。", dn_tip: "切莫淪為拜金。" },
+    { id: 77, isMajor: false, name: "星幣國王", element: "土", icon: "🪙", up_kw: "富裕可靠、保護性、務實領導", dn_kw: "貪婪、浪費、糟糕財務決策", core: "坐在藤蔓寶座上的國王。", up_dec: "富裕可靠、保護性、務實領導。", dn_dec: "貪婪、浪費、吝嗇。", up_love: "給予滿滿安全感", dn_love: "金錢掌控感情", up_work: "財務管理大權在握", dn_work: "不良投資嚴重虧損", up_tip: "穩健經營避免貪婪。", dn_tip: "及時停損切勿揮霍。" }
+];
+
+const POS_NAMES = ["1. 過去 / 起因", "2. 現在 / 當下處境", "3. 未來 / 發展建議"];
+
+let selectedIndices = [];   // 使用者點選的牌位（0~77）
+let drawnCards = [];
+let shuffledDeck = [];      // 每次重新抽牌時洗一次，牌位與牌面固定對應
+let revealed = false;
+let timers = [];
+
+// Fisher–Yates 洗牌
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+// 跳脫 HTML，避免使用者輸入被當成標籤
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function clearTimers() {
+    timers.forEach(t => clearTimeout(t));
+    timers = [];
+}
+
+function initDeck() {
+    clearTimers();
+    const grid = document.getElementById('deckGrid');
+    grid.innerHTML = '';
+    selectedIndices = [];
+    drawnCards = [];
+    revealed = false;
+    shuffledDeck = shuffle(TAROT_DB);
+
+    for (let i = 0; i < 3; i++) {
+        document.getElementById(`cardContainer${i}`).classList.remove('flipped');
+    }
+    document.getElementById('drawnSection').style.display = 'none';
+    document.getElementById('reportSection').style.display = 'none';
+
+    for (let i = 0; i < 78; i++) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'deck-card';
+        cardEl.dataset.index = i;
+        cardEl.title = `第 ${i + 1} 張卡片`;
+
+        const numStr = String(i + 1).padStart(2, '0');
+        cardEl.innerHTML = `
+            <span class="deck-card-num">No.${numStr}</span>
+            <span class="deck-card-icon">✦</span>
+            <span class="deck-card-num" style="opacity:0.4;">No.${numStr}</span>
+        `;
+
+        cardEl.addEventListener('click', () => toggleSelectCard(i, cardEl));
+        grid.appendChild(cardEl);
+    }
+    updateStatus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function refreshDeckLook() {
+    const full = selectedIndices.length >= 3;
+    document.querySelectorAll('.deck-card').forEach(el => {
+        const idx = Number(el.dataset.index);
+        const isSel = selectedIndices.includes(idx);
+        el.classList.toggle('selected', isSel);
+        // 選滿 3 張或已揭曉後，其餘牌變暗且不可點
+        el.classList.toggle('disabled', (full || revealed) && !isSel);
+    });
+}
+
+function toggleSelectCard(idx) {
+    if (revealed) return; // 揭曉後鎖住牌陣，避免重抽
+
+    if (selectedIndices.includes(idx)) {
+        selectedIndices = selectedIndices.filter(i => i !== idx);
+    } else {
+        if (selectedIndices.length >= 3) return;
+        selectedIndices.push(idx);
+    }
+    refreshDeckLook();
+    updateStatus();
+}
+
+function updateStatus() {
+    const text = document.getElementById('statusText');
+    const btn = document.getElementById('revealBtn');
+    const count = selectedIndices.length;
+
+    if (revealed) {
+        text.textContent = '牌面已揭曉。想重新諮詢，請按「重新抽牌」。';
+        btn.disabled = true;
+    } else {
+        text.textContent = `請點選下方牌陣中的 3 張卡片（已選擇: ${count} / 3）`;
+        btn.disabled = count !== 3;
+    }
+}
+
+function revealCards() {
+    if (revealed || selectedIndices.length !== 3) return;
+    revealed = true;
+    updateStatus();
+    refreshDeckLook();
+
+    drawnCards = selectedIndices.map(idx => ({
+        card: shuffledDeck[idx],
+        isUpright: Math.random() >= 0.5,
+        originalNum: idx + 1
+    }));
+
+    const drawnSection = document.getElementById('drawnSection');
+    drawnSection.style.display = 'block';
+
+    drawnCards.forEach((item, i) => {
+        const container = document.getElementById(`cardContainer${i}`);
+        const frontEl = document.getElementById(`cardFront${i}`);
+        const backNumEl = document.getElementById(`backCardNum${i}`);
+
+        backNumEl.textContent = `No.${String(item.originalNum).padStart(2, '0')}`;
+        container.classList.remove('flipped');
+
+        frontEl.innerHTML = `
+            <div class="magic-card-header">✦ TAROT CARD ✦</div>
+            <div class="magic-card-body">
+                <div class="magic-card-icon ${item.isUpright ? '' : 'reversed-icon'}">${item.card.icon}</div>
+                <div class="magic-card-name">${item.card.name}</div>
+                <div class="magic-card-element">${item.card.element}元素</div>
+            </div>
+            <div class="magic-card-footer ${item.isUpright ? 'badge-up' : 'badge-down'}">
+                ${item.isUpright ? '【 正 位 】' : '【 逆 位 】'}
+            </div>
+        `;
+
+        timers.push(setTimeout(() => container.classList.add('flipped'), 300 + i * 400));
+    });
+
+    drawnSection.scrollIntoView({ behavior: 'smooth' });
+    timers.push(setTimeout(generateReport, 1800));
+}
+
+function generateReport() {
+    const reportSection = document.getElementById('reportSection');
+    const reportQuestion = document.getElementById('reportQuestion');
+    const container = document.getElementById('cardDetailsContainer');
+    const summaryText = document.getElementById('summaryText');
+
+    const questionVal = escapeHtml(document.getElementById('question').value.trim() || "未指定問題");
+    reportQuestion.innerHTML = `<strong>諮詢問題：</strong> ${questionVal}`;
+
+    let majorCount = 0;
+    let html = '';
+
+    drawnCards.forEach((item, i) => {
+        const c = item.card;
+        const isUp = item.isUpright;
+        if (c.isMajor) majorCount++;
+
+        html += `
+            <div class="card-detail-card">
+                <div class="card-detail-header">
+                    <span class="card-detail-title">${POS_NAMES[i]} ： ${c.name} (${isUp ? '正位' : '逆位'})</span>
+                    <div>
+                        <span class="tag" style="background:${c.isMajor ? 'rgba(212,175,55,0.3)' : 'rgba(107,45,92,0.6)'}">
+                            ${c.isMajor ? '大阿爾克納(主線)' : '小阿爾克納(支線)'}
+                        </span>
+                        <span class="tag">${c.element}元素</span>
+                        <span class="tag" style="background:${isUp ? 'rgba(46,125,50,0.6)' : 'rgba(198,40,40,0.6)'}">
+                            ${isUp ? '正位' : '逆位'}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-item"><strong>圖像與核心：</strong>${c.core}</div>
+                <div class="detail-item"><strong>【${isUp ? '正位關鍵字' : '逆位關鍵字'}】：</strong>${isUp ? c.up_kw : c.dn_kw}</div>
+                <div class="detail-item"><strong>【${isUp ? '正位解讀' : '逆位解讀'}】：</strong>${isUp ? c.up_dec : c.dn_dec}</div>
+                <div class="detail-item"><strong>感情面脈絡：</strong>${isUp ? c.up_love : c.dn_love}</div>
+                <div class="detail-item"><strong>事業與現實面：</strong>${isUp ? c.up_work : c.dn_work}</div>
+                <div class="detail-item"><strong>行動與心態建議：</strong>${isUp ? c.up_tip : c.dn_tip}</div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+
+    const label = i => drawnCards[i].card.name + (drawnCards[i].isUpright ? '正位' : '逆位');
+    const dec = i => drawnCards[i].isUpright ? drawnCards[i].card.up_dec : drawnCards[i].card.dn_dec;
+    const tip = drawnCards[2].isUpright ? drawnCards[2].card.up_tip : drawnCards[2].card.dn_tip;
+
+    const arcanaAdvice = majorCount >= 2
+        ? `【主線課題提醒】：本次抽牌出現了 <strong>${majorCount} 張大阿爾克納</strong>，代表這件事牽涉到您生命中重要的轉折與深刻的內在課題，建議順應內在覺醒與大環境趨勢。`
+        : `【日常實踐提醒】：本次抽牌以<strong>小阿爾克納</strong>為主，代表這件事情屬於日常生活具體細節，您可以透過個人的實際行動調整與溝通來改變局勢！`;
+
+    summaryText.innerHTML = `
+        針對您的諮詢主題「<strong>${questionVal}</strong>」：<br><br>
+        ${arcanaAdvice}<br><br>
+        • <strong>過去起因（${label(0)}）</strong>：${dec(0)}<br><br>
+        • <strong>當前處境（${label(1)}）</strong>：${dec(1)}<br><br>
+        • <strong>未來指引（${label(2)}）</strong>：${dec(2)}<br><br>
+        <strong>✦ 榮格心理學（共時性）指引：</strong><br>
+        塔羅牌是映照當下的鏡子。請參考未來指引牌「${drawnCards[2].card.name}」給予您的重要提示：<br>
+        『<em>${tip}</em>』
+    `;
+
+    reportSection.style.display = 'block';
+}
+
+window.addEventListener('DOMContentLoaded', initDeck);
+</script>
+</body>
+</html>
